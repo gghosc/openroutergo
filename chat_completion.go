@@ -20,8 +20,8 @@ import (
 //   - Request: https://openrouter.ai/docs/api-reference/overview#completions-request-format
 //   - Parameters: https://openrouter.ai/docs/api-reference/parameters
 //   - Response: https://openrouter.ai/docs/api-reference/overview#completionsresponse-format
-func (c *Client) NewChatCompletion() *chatCompletionBuilder {
-	return &chatCompletionBuilder{
+func (c *Client) NewChatCompletion() *ChatCompletionBuilder {
+	return &ChatCompletionBuilder{
 		client:             c,
 		mu:                 sync.Mutex{},
 		executing:          false,
@@ -53,7 +53,7 @@ func (c *Client) NewChatCompletion() *chatCompletionBuilder {
 	}
 }
 
-type chatCompletionBuilder struct {
+type ChatCompletionBuilder struct {
 	client             *Client
 	mu                 sync.Mutex
 	executing          bool
@@ -88,8 +88,8 @@ type chatCompletionBuilder struct {
 // builder.
 //
 // This is useful if you want to reuse the same configuration for multiple requests.
-func (b *chatCompletionBuilder) Clone() *chatCompletionBuilder {
-	return &chatCompletionBuilder{
+func (b *ChatCompletionBuilder) Clone() *ChatCompletionBuilder {
+	return &ChatCompletionBuilder{
 		client:             b.client,
 		mu:                 sync.Mutex{},
 		executing:          false,
@@ -149,7 +149,7 @@ type ChatCompletionTool struct {
 // WithDebug sets the debug flag for the chat completion request.
 //
 // If true, the JSON request and response will be printed to the console for debugging purposes.
-func (b *chatCompletionBuilder) WithDebug(debug bool) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithDebug(debug bool) *ChatCompletionBuilder {
 	b.debug = debug
 	return b
 }
@@ -157,7 +157,7 @@ func (b *chatCompletionBuilder) WithDebug(debug bool) *chatCompletionBuilder {
 // WithContext sets the context for the chat completion request.
 //
 // If not set, a context.Background() context will be used.
-func (b *chatCompletionBuilder) WithContext(ctx context.Context) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithContext(ctx context.Context) *ChatCompletionBuilder {
 	b.ctx = ctx
 	return b
 }
@@ -167,7 +167,7 @@ func (b *chatCompletionBuilder) WithContext(ctx context.Context) *chatCompletion
 // If not set, the default model configured in the OpenRouter user's account will be used.
 //
 // You can search for models here: https://openrouter.ai/models
-func (b *chatCompletionBuilder) WithModel(model string) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithModel(model string) *ChatCompletionBuilder {
 	b.model = optional.String{IsSet: true, Value: model}
 	return b
 }
@@ -184,7 +184,7 @@ func (b *chatCompletionBuilder) WithModel(model string) *chatCompletionBuilder {
 //
 //   - Docs: https://openrouter.ai/docs/features/model-routing#the-models-parameter
 //   - Example: https://openrouter.ai/docs/features/model-routing#using-with-openai-sdk
-func (b *chatCompletionBuilder) WithModelFallback(modelFallback string) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithModelFallback(modelFallback string) *ChatCompletionBuilder {
 	b.fallbackModels = append(b.fallbackModels, modelFallback)
 	return b
 }
@@ -192,7 +192,7 @@ func (b *chatCompletionBuilder) WithModelFallback(modelFallback string) *chatCom
 // WithMessage adds a message to the chat completion request.
 //
 // All messages are added to the request in the same order they are added.
-func (b *chatCompletionBuilder) WithMessage(message ChatCompletionMessage) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithMessage(message ChatCompletionMessage) *ChatCompletionBuilder {
 	b.messages = append(b.messages, message)
 	return b
 }
@@ -200,7 +200,7 @@ func (b *chatCompletionBuilder) WithMessage(message ChatCompletionMessage) *chat
 // WithSystemMessage adds a system message to the chat completion request.
 //
 // All messages are added to the request in the same order they are added.
-func (b *chatCompletionBuilder) WithSystemMessage(message string) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithSystemMessage(message string) *ChatCompletionBuilder {
 	b.WithMessage(ChatCompletionMessage{Role: RoleSystem, Content: message})
 	return b
 }
@@ -208,7 +208,7 @@ func (b *chatCompletionBuilder) WithSystemMessage(message string) *chatCompletio
 // WithDeveloperMessage adds a developer message to the chat completion request.
 //
 // All messages are added to the request in the same order they are added.
-func (b *chatCompletionBuilder) WithDeveloperMessage(message string) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithDeveloperMessage(message string) *ChatCompletionBuilder {
 	b.WithMessage(ChatCompletionMessage{Role: RoleDeveloper, Content: message})
 	return b
 }
@@ -218,7 +218,7 @@ func (b *chatCompletionBuilder) WithDeveloperMessage(message string) *chatComple
 // If a name is provided, it will be used as the name of the user.
 //
 // All messages are added to the request in the same order they are added.
-func (b *chatCompletionBuilder) WithUserMessage(message string, name ...string) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithUserMessage(message string, name ...string) *ChatCompletionBuilder {
 	uname := ""
 	if len(name) > 0 {
 		uname = name[0]
@@ -233,7 +233,7 @@ func (b *chatCompletionBuilder) WithUserMessage(message string, name ...string) 
 // If a name is provided, it will be used as the name of the assistant.
 //
 // All messages are added to the request in the same order they are added.
-func (b *chatCompletionBuilder) WithAssistantMessage(message string, name ...string) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithAssistantMessage(message string, name ...string) *ChatCompletionBuilder {
 	uname := ""
 	if len(name) > 0 {
 		uname = name[0]
@@ -255,7 +255,7 @@ func (b *chatCompletionBuilder) WithAssistantMessage(message string, name ...str
 //     which tool request this message is responding to.
 //   - toolResponseContent: The result you got from the tool. This content will be sent
 //     back to the model.
-func (b *chatCompletionBuilder) WithToolMessage(toolCallRequest ChatCompletionMessageToolCall, toolResponseContent string) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithToolMessage(toolCallRequest ChatCompletionMessageToolCall, toolResponseContent string) *ChatCompletionBuilder {
 	b.WithMessage(ChatCompletionMessage{
 		Role:       RoleTool,
 		Name:       toolCallRequest.Function.Name,
@@ -275,7 +275,7 @@ func (b *chatCompletionBuilder) WithToolMessage(toolCallRequest ChatCompletionMe
 //   - Default: 1.0
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#temperature
 //   - Explanation: https://youtu.be/ezgqHnWvua8
-func (b *chatCompletionBuilder) WithTemperature(temperature float64) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithTemperature(temperature float64) *ChatCompletionBuilder {
 	b.temperature = optional.Float64{IsSet: true, Value: temperature}
 	return b
 }
@@ -290,7 +290,7 @@ func (b *chatCompletionBuilder) WithTemperature(temperature float64) *chatComple
 //   - Default: 1.0
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#top-p
 //   - Explanation: https://youtu.be/wQP-im_HInk
-func (b *chatCompletionBuilder) WithTopP(topP float64) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithTopP(topP float64) *ChatCompletionBuilder {
 	b.topP = optional.Float64{IsSet: true, Value: topP}
 	return b
 }
@@ -305,7 +305,7 @@ func (b *chatCompletionBuilder) WithTopP(topP float64) *chatCompletionBuilder {
 //   - Default: 0
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#top-k
 //   - Explanation: https://youtu.be/EbZv6-N8Xlk
-func (b *chatCompletionBuilder) WithTopK(topK int) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithTopK(topK int) *ChatCompletionBuilder {
 	b.topK = optional.Int{IsSet: true, Value: topK}
 	return b
 }
@@ -320,7 +320,7 @@ func (b *chatCompletionBuilder) WithTopK(topK int) *chatCompletionBuilder {
 //   - Default: 0.0
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#frequency-penalty
 //   - Explanation: https://youtu.be/p4gl6fqI0_w
-func (b *chatCompletionBuilder) WithFrequencyPenalty(frequencyPenalty float64) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithFrequencyPenalty(frequencyPenalty float64) *ChatCompletionBuilder {
 	b.frequencyPenalty = optional.Float64{IsSet: true, Value: frequencyPenalty}
 	return b
 }
@@ -335,7 +335,7 @@ func (b *chatCompletionBuilder) WithFrequencyPenalty(frequencyPenalty float64) *
 //   - Default: 0.0
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#presence-penalty
 //   - Explanation: https://youtu.be/MwHG5HL-P74
-func (b *chatCompletionBuilder) WithPresencePenalty(presencePenalty float64) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithPresencePenalty(presencePenalty float64) *ChatCompletionBuilder {
 	b.presencePenalty = optional.Float64{IsSet: true, Value: presencePenalty}
 	return b
 }
@@ -350,7 +350,7 @@ func (b *chatCompletionBuilder) WithPresencePenalty(presencePenalty float64) *ch
 //   - Default: 1.0
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#repetition-penalty
 //   - Explanation: https://youtu.be/LHjGAnLm3DM
-func (b *chatCompletionBuilder) WithRepetitionPenalty(repetitionPenalty float64) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithRepetitionPenalty(repetitionPenalty float64) *ChatCompletionBuilder {
 	b.repetitionPenalty = optional.Float64{IsSet: true, Value: repetitionPenalty}
 	return b
 }
@@ -364,7 +364,7 @@ func (b *chatCompletionBuilder) WithRepetitionPenalty(repetitionPenalty float64)
 //
 //   - Default: 0.0
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#min-p
-func (b *chatCompletionBuilder) WithMinP(minP float64) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithMinP(minP float64) *ChatCompletionBuilder {
 	b.minP = optional.Float64{IsSet: true, Value: minP}
 	return b
 }
@@ -378,7 +378,7 @@ func (b *chatCompletionBuilder) WithMinP(minP float64) *chatCompletionBuilder {
 //
 //   - Default: 0.0
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#top-a
-func (b *chatCompletionBuilder) WithTopA(topA float64) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithTopA(topA float64) *ChatCompletionBuilder {
 	b.topA = optional.Float64{IsSet: true, Value: topA}
 	return b
 }
@@ -390,7 +390,7 @@ func (b *chatCompletionBuilder) WithTopA(topA float64) *chatCompletionBuilder {
 // Determinism is not guaranteed for some models.
 //
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#seed
-func (b *chatCompletionBuilder) WithSeed(seed int) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithSeed(seed int) *ChatCompletionBuilder {
 	b.seed = optional.Int{IsSet: true, Value: seed}
 	return b
 }
@@ -402,7 +402,7 @@ func (b *chatCompletionBuilder) WithSeed(seed int) *chatCompletionBuilder {
 // the prompt length.
 //
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#max-tokens
-func (b *chatCompletionBuilder) WithMaxTokens(maxTokens int) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithMaxTokens(maxTokens int) *ChatCompletionBuilder {
 	b.maxTokens = optional.Int{IsSet: true, Value: maxTokens}
 	return b
 }
@@ -414,7 +414,7 @@ func (b *chatCompletionBuilder) WithMaxTokens(maxTokens int) *chatCompletionBuil
 // exclusive selection of the relevant token.
 //
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#logit-bias
-func (b *chatCompletionBuilder) WithLogitBias(logitBias map[int]int) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithLogitBias(logitBias map[int]int) *ChatCompletionBuilder {
 	b.logitBias = optional.MapIntInt{IsSet: true, Value: logitBias}
 	return b
 }
@@ -423,7 +423,7 @@ func (b *chatCompletionBuilder) WithLogitBias(logitBias map[int]int) *chatComple
 // log probabilities of each output token returned.
 //
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#logprobs
-func (b *chatCompletionBuilder) WithLogprobs(logprobs bool) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithLogprobs(logprobs bool) *ChatCompletionBuilder {
 	b.logprobs = optional.Bool{IsSet: true, Value: logprobs}
 	return b
 }
@@ -433,7 +433,7 @@ func (b *chatCompletionBuilder) WithLogprobs(logprobs bool) *chatCompletionBuild
 // this parameter is used.
 //
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#top-logprobs
-func (b *chatCompletionBuilder) WithTopLogprobs(topLogprobs int) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithTopLogprobs(topLogprobs int) *ChatCompletionBuilder {
 	b.topLogprobs = optional.Int{IsSet: true, Value: topLogprobs}
 	return b
 }
@@ -455,7 +455,7 @@ func (b *chatCompletionBuilder) WithTopLogprobs(topLogprobs int) *chatCompletion
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#response-format
 //   - More info (read all): https://platform.openai.com/docs/guides/structured-outputs
 //   - Example: https://platform.openai.com/docs/guides/structured-outputs?lang=curl&format=without-parse&api-mode=chat#how-to-use
-func (b *chatCompletionBuilder) WithResponseFormat(responseFormat map[string]any) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithResponseFormat(responseFormat map[string]any) *ChatCompletionBuilder {
 	b.responseFormat = optional.MapStringAny{IsSet: true, Value: responseFormat}
 	return b
 }
@@ -465,7 +465,7 @@ func (b *chatCompletionBuilder) WithResponseFormat(responseFormat map[string]any
 // If the model can return structured outputs using response_format json_schema.
 //
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#structured-outputs
-func (b *chatCompletionBuilder) WithStructuredOutputs(structuredOutputs bool) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithStructuredOutputs(structuredOutputs bool) *ChatCompletionBuilder {
 	b.structuredOutputs = optional.Bool{IsSet: true, Value: structuredOutputs}
 	return b
 }
@@ -473,7 +473,7 @@ func (b *chatCompletionBuilder) WithStructuredOutputs(structuredOutputs bool) *c
 // WithStop Stop generation immediately if the model encounter any token specified in the stop array.
 //
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#stop
-func (b *chatCompletionBuilder) WithStop(stop []string) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithStop(stop []string) *ChatCompletionBuilder {
 	b.stop = stop
 	return b
 }
@@ -486,7 +486,7 @@ func (b *chatCompletionBuilder) WithStop(stop []string) *chatCompletionBuilder {
 //   - Models supporting tool calling: https://openrouter.ai/models?supported_parameters=tools
 //   - JSON Schema reference: https://json-schema.org/understanding-json-schema/reference
 //   - Tool calling example: https://platform.openai.com/docs/guides/function-calling
-func (b *chatCompletionBuilder) WithTool(tool ChatCompletionTool) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithTool(tool ChatCompletionTool) *ChatCompletionBuilder {
 	b.tools = append(b.tools, chatCompletionToolFunction{Type: "function", Function: tool})
 	return b
 }
@@ -502,7 +502,7 @@ func (b *chatCompletionBuilder) WithTool(tool ChatCompletionTool) *chatCompletio
 // format to the model.
 //
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#tool-choice
-func (b *chatCompletionBuilder) WithToolChoice(toolChoice string) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithToolChoice(toolChoice string) *ChatCompletionBuilder {
 	b.toolChoice = optional.String{IsSet: true, Value: toolChoice}
 	return b
 }
@@ -512,7 +512,7 @@ func (b *chatCompletionBuilder) WithToolChoice(toolChoice string) *chatCompletio
 // For example, the value (1, 2) will route to any provider with a price of <= $1/m prompt tokens and <= $2/m completion tokens.
 //
 //   - Docs: https://openrouter.ai/docs/api-reference/parameters#max-price
-func (b *chatCompletionBuilder) WithMaxPrice(maxPromptPrice float64, maxCompletionPrice float64) *chatCompletionBuilder {
+func (b *ChatCompletionBuilder) WithMaxPrice(maxPromptPrice float64, maxCompletionPrice float64) *ChatCompletionBuilder {
 	b.maxPromptPrice = optional.Float64{IsSet: true, Value: maxPromptPrice}
 	b.maxCompletionPrice = optional.Float64{IsSet: true, Value: maxCompletionPrice}
 	return b
@@ -566,7 +566,7 @@ type errorResponse struct {
 //	}
 //
 //	fmt.Println("Response: ", resp.Choices[0].Message.Content)
-func (b *chatCompletionBuilder) Execute() (*chatCompletionBuilder, ChatCompletionResponse, error) {
+func (b *ChatCompletionBuilder) Execute() (*ChatCompletionBuilder, ChatCompletionResponse, error) {
 	if b.executing {
 		return b, ChatCompletionResponse{}, ErrAlreadyExecuting
 	}
